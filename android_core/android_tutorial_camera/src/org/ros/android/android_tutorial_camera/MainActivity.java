@@ -51,7 +51,8 @@ public class MainActivity extends RosActivity {
     getWindow().addFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN);
     setContentView(R.layout.main);
     rosCameraPreviewView = (RosCameraPreviewView) findViewById(R.id.ros_camera_preview_view);
-    rosCameraPreviewView.setName(Build.MANUFACTURER + Build.MODEL + Build.SERIAL);
+    Log.e("Camera Tutorial", "I am going to set the name");
+    rosCameraPreviewView.setName(Build.SERIAL);
   }
 
   @Override
