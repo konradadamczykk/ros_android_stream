@@ -56,6 +56,8 @@
 
 namespace subscriber_image_view {
 
+#define MAX_SUBSCRIBERS		4
+
 class SubsImageView
   : public rqt_gui_cpp::Plugin
 {
@@ -124,7 +126,10 @@ protected:
 
   QWidget* widget_;
 
-  image_transport::Subscriber subscriber_;
+  ros::NodeHandle		nh[MAX_SUBSCRIBERS];
+  image_transport::Subscriber	subscriber_[MAX_SUBSCRIBERS];
+
+  int context_id_;
 
   cv::Mat conversion_mat_;
 
