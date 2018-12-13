@@ -63,6 +63,9 @@ void ImageView::initPlugin(qt_gui_cpp::PluginContext& context)
   {
     widget_->setWindowTitle(widget_->windowTitle() + " (" + QString::number(context.serialNumber()) + ")");
   }
+
+  context_id_ = context.serialNumber();
+
   context.addWidget(widget_);
 
   updateTopicList();
@@ -116,7 +119,7 @@ void ImageView::initPlugin(qt_gui_cpp::PluginContext& context)
 
 void ImageView::shutdownPlugin()
 {
-  subscriber_.shutdown();
+  subscriber_[context_id_].shutdown();
   pub_mouse_left_.shutdown();
 }
 
@@ -293,7 +296,7 @@ void ImageView::selectTopic(const QString& topic)
 
 void ImageView::onTopicChanged(int index)
 {
-  subscriber_.shutdown();
+  subscriber_[context_id_].shutdown();
 
   // reset image on topic change
   ui_.image_frame->setImage(QImage());
@@ -304,10 +307,10 @@ void ImageView::onTopicChanged(int index)
 
   if (!topic.isEmpty())
   {
-    image_transport::ImageTransport it(getNodeHandle());
+    image_transport::ImageTransport it(nh[context_id_]);
     image_transport::TransportHints hints(transport.toStdString());
     try {
-      subscriber_ = it.subscribe(topic.toStdString(), 1, &ImageView::callbackImage, this, hints);
+      subscriber_[context_id_] = it.subscribe(topic.toStdString(), 1, &ImageView::callbackImage, this, hints);
       //qDebug("ImageView::onTopicChanged() to topic '%s' with transport '%s'", topic.toStdString().c_str(), subscriber_.getTransport().c_str());
     } catch (image_transport::TransportLoadException& e) {
       QMessageBox::warning(widget_, tr("Loading image transport plugin failed"), e.what());
@@ -365,9 +368,9 @@ void ImageView::onMousePublish(bool checked)
   {
     topicName = ui_.publish_click_location_topic_line_edit->text().toStdString();
   } else {
-    if(!subscriber_.getTopic().empty())
+    if(!subscriber_[context_id_].getTopic().empty())
     {
-      topicName = subscriber_.getTopic()+"_mouse_left";
+      topicName = subscriber_[context_id_].getTopic()+"_mouse_left";
     } else {
       topicName = "mouse_left";
     }
