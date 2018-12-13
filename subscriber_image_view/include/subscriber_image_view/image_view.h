@@ -30,8 +30,8 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef subscriber_image_view__ImageView_H
-#define subscriber_image_view__ImageView_H
+#ifndef subscriber_image_view__SubsImageView_H
+#define subscriber_image_view__SubsImageView_H
 
 #include <rqt_gui_cpp/plugin.h>
 
@@ -56,7 +56,7 @@
 
 namespace subscriber_image_view {
 
-class ImageView
+class SubsImageView
   : public rqt_gui_cpp::Plugin
 {
 
@@ -64,7 +64,7 @@ class ImageView
 
 public:
 
-  ImageView();
+  SubsImageView();
 
   virtual void initPlugin(qt_gui_cpp::PluginContext& context);
 
@@ -120,7 +120,7 @@ protected:
 
   virtual void overlayGrid();
 
-  Ui::ImageViewWidget ui_;
+  Ui::SubsImageViewWidget ui_;
 
   QWidget* widget_;
 
@@ -155,4 +155,4 @@ private:
 
 }
 
-#endif // subscriber_image_view__ImageView_H
+#endif // subscriber_image_view__SubsImageView_H

@@ -45,16 +45,16 @@
 
 namespace subscriber_image_view {
 
-ImageView::ImageView()
+SubsImageView::SubsImageView()
   : rqt_gui_cpp::Plugin()
   , widget_(0)
   , num_gridlines_(0)
   , rotate_state_(ROTATE_0)
 {
-  setObjectName("ImageView");
+  setObjectName("SubsImageView");
 }
 
-void ImageView::initPlugin(qt_gui_cpp::PluginContext& context)
+void SubsImageView::initPlugin(qt_gui_cpp::PluginContext& context)
 {
   widget_ = new QWidget();
   ui_.setupUi(widget_);
@@ -107,36 +107,37 @@ void ImageView::initPlugin(qt_gui_cpp::PluginContext& context)
   ui_.rotate_label->setMinimumWidth(
     ui_.rotate_label->fontMetrics().width("XXX°")
   );
-
+/*
   hide_toolbar_action_ = new QAction(tr("Hide toolbar"), this);
   hide_toolbar_action_->setCheckable(true);
   ui_.image_frame->addAction(hide_toolbar_action_);
   connect(hide_toolbar_action_, SIGNAL(toggled(bool)), this, SLOT(onHideToolbarChanged(bool)));
+*/
 }
 
-void ImageView::shutdownPlugin()
+void SubsImageView::shutdownPlugin()
 {
   subscriber_.shutdown();
   pub_mouse_left_.shutdown();
 }
 
-void ImageView::saveSettings(qt_gui_cpp::Settings& plugin_settings, qt_gui_cpp::Settings& instance_settings) const
+void SubsImageView::saveSettings(qt_gui_cpp::Settings& plugin_settings, qt_gui_cpp::Settings& instance_settings) const
 {
   QString topic = ui_.topics_combo_box->currentText();
-  //qDebug("ImageView::saveSettings() topic '%s'", topic.toStdString().c_str());
+  //qDebug("SubsImageView::saveSettings() topic '%s'", topic.toStdString().c_str());
   instance_settings.setValue("topic", topic);
 //  instance_settings.setValue("zoom1", ui_.zoom_1_push_button->isChecked());
   instance_settings.setValue("dynamic_range", ui_.dynamic_range_check_box->isChecked());
   instance_settings.setValue("max_range", ui_.max_range_double_spin_box->value());
   instance_settings.setValue("publish_click_location", ui_.publish_click_location_check_box->isChecked());
   instance_settings.setValue("mouse_pub_topic", ui_.publish_click_location_topic_line_edit->text());
-  instance_settings.setValue("toolbar_hidden", hide_toolbar_action_->isChecked());
+// instance_settings.setValue("toolbar_hidden", hide_toolbar_action_->isChecked());
   instance_settings.setValue("num_gridlines", ui_.num_gridlines_spin_box->value());
   instance_settings.setValue("smooth_image", ui_.smooth_image_check_box->isChecked());
   instance_settings.setValue("rotate", rotate_state_);
 }
 
-void ImageView::restoreSettings(const qt_gui_cpp::Settings& plugin_settings, const qt_gui_cpp::Settings& instance_settings)
+void SubsImageView::restoreSettings(const qt_gui_cpp::Settings& plugin_settings, const qt_gui_cpp::Settings& instance_settings)
 {
   bool zoom1_checked = instance_settings.value("zoom1", false).toBool();
 //  ui_.zoom_1_push_button->setChecked(zoom1_checked);
@@ -158,7 +159,7 @@ void ImageView::restoreSettings(const qt_gui_cpp::Settings& plugin_settings, con
   }
   else
   {
-    //qDebug("ImageView::restoreSettings() topic '%s'", topic.toStdString().c_str());
+    //qDebug("SubsImageView::restoreSettings() topic '%s'", topic.toStdString().c_str());
     selectTopic(topic);
   }
 
@@ -168,8 +169,8 @@ void ImageView::restoreSettings(const qt_gui_cpp::Settings& plugin_settings, con
   QString pub_topic = instance_settings.value("mouse_pub_topic", "").toString();
   ui_.publish_click_location_topic_line_edit->setText(pub_topic);
 
-  bool toolbar_hidden = instance_settings.value("toolbar_hidden", false).toBool();
-  hide_toolbar_action_->setChecked(toolbar_hidden);
+//  bool toolbar_hidden = instance_settings.value("toolbar_hidden", false).toBool();
+//  hide_toolbar_action_->setChecked(toolbar_hidden);
 
   bool smooth_image_checked = instance_settings.value("smooth_image", false).toBool();
   ui_.smooth_image_check_box->setChecked(smooth_image_checked);
@@ -180,7 +181,7 @@ void ImageView::restoreSettings(const qt_gui_cpp::Settings& plugin_settings, con
   syncRotateLabel();
 }
 
-void ImageView::updateTopicList()
+void SubsImageView::updateTopicList()
 {
   QSet<QString> message_types;
   message_types.insert("sensor_msgs/Image");
@@ -193,7 +194,7 @@ void ImageView::updateTopicList()
   std::vector<std::string> declared = it.getDeclaredTransports();
   for (std::vector<std::string>::const_iterator it = declared.begin(); it != declared.end(); it++)
   {
-    //qDebug("ImageView::updateTopicList() declared transport '%s'", it->c_str());
+    //qDebug("SubsImageView::updateTopicList() declared transport '%s'", it->c_str());
     QString transport = it->c_str();
 
     // strip prefix from transport name
@@ -223,13 +224,13 @@ void ImageView::updateTopicList()
   selectTopic(selected);
 }
 
-QList<QString> ImageView::getTopicList(const QSet<QString>& message_types, const QList<QString>& transports)
+QList<QString> SubsImageView::getTopicList(const QSet<QString>& message_types, const QList<QString>& transports)
 {
   QSet<QString> message_sub_types;
   return getTopics(message_types, message_sub_types, transports).values();
 }
 
-QSet<QString> ImageView::getTopics(const QSet<QString>& message_types, const QSet<QString>& message_sub_types, const QList<QString>& transports)
+QSet<QString> SubsImageView::getTopics(const QSet<QString>& message_types, const QSet<QString>& message_sub_types, const QList<QString>& transports)
 {
   ros::master::V_TopicInfo topic_info;
   ros::master::getTopics(topic_info);
@@ -249,7 +250,7 @@ QSet<QString> ImageView::getTopics(const QSet<QString>& message_types, const QSe
 
       // add raw topic
       topics.insert(topic);
-      //qDebug("ImageView::getTopics() raw topic '%s'", topic.toStdString().c_str());
+      //qDebug("SubsImageView::getTopics() raw topic '%s'", topic.toStdString().c_str());
 
       // add transport specific sub-topics
       for (QList<QString>::const_iterator jt = transports.begin(); jt != transports.end(); jt++)
@@ -258,7 +259,7 @@ QSet<QString> ImageView::getTopics(const QSet<QString>& message_types, const QSe
         {
           QString sub = topic + " " + *jt;
           topics.insert(sub);
-          //qDebug("ImageView::getTopics() transport specific sub-topic '%s'", sub.toStdString().c_str());
+          //qDebug("SubsImageView::getTopics() transport specific sub-topic '%s'", sub.toStdString().c_str());
         }
       }
     }
@@ -270,14 +271,14 @@ QSet<QString> ImageView::getTopics(const QSet<QString>& message_types, const QSe
       {
         topic.replace(index, 1, " ");
         topics.insert(topic);
-        //qDebug("ImageView::getTopics() transport specific sub-topic '%s'", topic.toStdString().c_str());
+        //qDebug("SubsImageView::getTopics() transport specific sub-topic '%s'", topic.toStdString().c_str());
       }
     }
   }
   return topics;
 }
 
-void ImageView::selectTopic(const QString& topic)
+void SubsImageView::selectTopic(const QString& topic)
 {
   int index = ui_.topics_combo_box->findText(topic);
   if (index == -1)
@@ -291,7 +292,7 @@ void ImageView::selectTopic(const QString& topic)
   ui_.topics_combo_box->setCurrentIndex(index);
 }
 
-void ImageView::onTopicChanged(int index)
+void SubsImageView::onTopicChanged(int index)
 {
   subscriber_.shutdown();
 
@@ -307,8 +308,8 @@ void ImageView::onTopicChanged(int index)
     image_transport::ImageTransport it(getNodeHandle());
     image_transport::TransportHints hints(transport.toStdString());
     try {
-      subscriber_ = it.subscribe(topic.toStdString(), 1, &ImageView::callbackImage, this, hints);
-      //qDebug("ImageView::onTopicChanged() to topic '%s' with transport '%s'", topic.toStdString().c_str(), subscriber_.getTransport().c_str());
+      subscriber_ = it.subscribe(topic.toStdString(), 1, &SubsImageView::callbackImage, this, hints);
+      //qDebug("SubsImageView::onTopicChanged() to topic '%s' with transport '%s'", topic.toStdString().c_str(), subscriber_.getTransport().c_str());
     } catch (image_transport::TransportLoadException& e) {
       QMessageBox::warning(widget_, tr("Loading image transport plugin failed"), e.what());
     }
@@ -317,7 +318,7 @@ void ImageView::onTopicChanged(int index)
   onMousePublish(ui_.publish_click_location_check_box->isChecked());
 }
 
-void ImageView::onZoom1(bool checked)
+void SubsImageView::onZoom1(bool checked)
 {
   if (checked)
   {
@@ -334,17 +335,17 @@ void ImageView::onZoom1(bool checked)
   }
 }
 
-void ImageView::onDynamicRange(bool checked)
+void SubsImageView::onDynamicRange(bool checked)
 {
   ui_.max_range_double_spin_box->setEnabled(!checked);
 }
 
-void ImageView::updateNumGridlines()
+void SubsImageView::updateNumGridlines()
 {
   num_gridlines_ = ui_.num_gridlines_spin_box->value();
 }
 
-void ImageView::saveImage()
+void SubsImageView::saveImage()
 {
   // take a snapshot before asking for the filename
   QImage img = ui_.image_frame->getImageCopy();
@@ -358,7 +359,7 @@ void ImageView::saveImage()
   img.save(file_name);
 }
 
-void ImageView::onMousePublish(bool checked)
+void SubsImageView::onMousePublish(bool checked)
 {
   std::string topicName;
   if(pub_topic_custom_)
@@ -382,7 +383,7 @@ void ImageView::onMousePublish(bool checked)
   }
 }
 
-void ImageView::onMouseLeft(int x, int y)
+void SubsImageView::onMouseLeft(int x, int y)
 {
   if(ui_.publish_click_location_check_box->isChecked() && !ui_.image_frame->getImage().isNull())
   {
@@ -416,18 +417,18 @@ void ImageView::onMouseLeft(int x, int y)
   }
 }
 
-void ImageView::onPubTopicChanged()
+void SubsImageView::onPubTopicChanged()
 {
   pub_topic_custom_ = !(ui_.publish_click_location_topic_line_edit->text().isEmpty());
   onMousePublish(ui_.publish_click_location_check_box->isChecked());
 }
 
-void ImageView::onHideToolbarChanged(bool hide)
+void SubsImageView::onHideToolbarChanged(bool hide)
 {
   ui_.toolbar_widget->setVisible(!hide);
 }
 
-void ImageView::onRotateLeft()
+void SubsImageView::onRotateLeft()
 {
   int m = rotate_state_ - 1;
   if(m < 0)
@@ -437,13 +438,13 @@ void ImageView::onRotateLeft()
   syncRotateLabel();
 }
 
-void ImageView::onRotateRight()
+void SubsImageView::onRotateRight()
 {
   rotate_state_ = static_cast<RotateState>((rotate_state_ + 1) % ROTATE_STATE_COUNT);
   syncRotateLabel();
 }
 
-void ImageView::syncRotateLabel()
+void SubsImageView::syncRotateLabel()
 {
   switch(rotate_state_)
   {
@@ -455,7 +456,7 @@ void ImageView::syncRotateLabel()
   }
 }
 
-void ImageView::invertPixels(int x, int y)
+void SubsImageView::invertPixels(int x, int y)
 {
   // Could do 255-conversion_mat_.at<cv::Vec3b>(cv::Point(x,y))[i], but that doesn't work well on gray
   cv::Vec3b & pixel = conversion_mat_.at<cv::Vec3b>(cv::Point(x, y));
@@ -465,7 +466,7 @@ void ImageView::invertPixels(int x, int y)
     pixel = cv::Vec3b(255,255,255);
 }
 
-QList<int> ImageView::getGridIndices(int size) const
+QList<int> SubsImageView::getGridIndices(int size) const
 {
   QList<int> indices;
 
@@ -504,7 +505,7 @@ QList<int> ImageView::getGridIndices(int size) const
   return indices;
 }
 
-void ImageView::overlayGrid()
+void SubsImageView::overlayGrid()
 {
   // vertical gridlines
   QList<int> columns = getGridIndices(conversion_mat_.cols);
@@ -527,7 +528,7 @@ void ImageView::overlayGrid()
   }
 }
 
-void ImageView::callbackImage(const sensor_msgs::Image::ConstPtr& msg)
+void SubsImageView::callbackImage(const sensor_msgs::Image::ConstPtr& msg)
 {
   try
   {
@@ -570,14 +571,14 @@ void ImageView::callbackImage(const sensor_msgs::Image::ConstPtr& msg)
         cv::Mat(cv_ptr->image-min).convertTo(img_scaled_8u, CV_8UC1, 255. / (max - min));
         cv::cvtColor(img_scaled_8u, conversion_mat_, CV_GRAY2RGB);
       } else {
-        qWarning("ImageView.callback_image() could not convert image from '%s' to 'rgb8' (%s)", msg->encoding.c_str(), e.what());
+        qWarning("SubsImageView.callback_image() could not convert image from '%s' to 'rgb8' (%s)", msg->encoding.c_str(), e.what());
         ui_.image_frame->setImage(QImage());
         return;
       }
     }
     catch (cv_bridge::Exception& e)
     {
-      qWarning("ImageView.callback_image() while trying to convert image from '%s' to 'rgb8' an exception was thrown (%s)", msg->encoding.c_str(), e.what());
+      qWarning("SubsImageView.callback_image() while trying to convert image from '%s' to 'rgb8' an exception was thrown (%s)", msg->encoding.c_str(), e.what());
       ui_.image_frame->setImage(QImage());
       return;
     }
@@ -626,4 +627,4 @@ void ImageView::callbackImage(const sensor_msgs::Image::ConstPtr& msg)
 }
 }
 
-PLUGINLIB_EXPORT_CLASS(subscriber_image_view::ImageView, rqt_gui_cpp::Plugin)
+PLUGINLIB_EXPORT_CLASS(subscriber_image_view::SubsImageView, rqt_gui_cpp::Plugin)
